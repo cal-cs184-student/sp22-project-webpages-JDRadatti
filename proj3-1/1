@@ -32,13 +32,12 @@
 <div>
 
 <h2 align="middle">Overview</h2>
-<p> 
-This project was very challenging, engaging, and time consuming. Although it was difficult, it was one of the most interesting projects I have ever done because it is so cool to slightly change an algorithm and see how it completely affects the way the image was rendered. Throughout this project, we implemented Ray Generation and Scene Intersection, Bounding Volume Hierarchy, Direct Illumination, Global Illumination, and adaptive sampling. In the first part, we handled the construction of rays and used the Möller Trumbore Algorithm to test for intersections with triangles and the algorithm described in lecture for sphere intersections. Next, we implemented BVH optimization to speed up our rendering process. It was amazing to watch the render times go from 10s of seconds to less than a tenth of a second. After that, we moved on to illuminating our scene. Starting with direct illumination using zero bounces and one bounces of light. For this part, we used a hemisphere sampler as well as a sampler around the area of each light and it was very cool to see the noise decrease using the latter sampler. Next, we implemented global illumination using a recursive algorithm to trace at least one bounce of light, up to max_ray_depth bounces of light, and terminating randomly with Russian Roulette. Finally, we added adaptive sampling to minimize the number of samples needed per pixel while still resulting in a smooth image by periodically checking whether or not the pixel has converged. This project was illuminating to the fascinating world of computer renders and was well-worth the time and frustrations; I cannot wait for 3.2.
+<p>
 </p>
 
 <h3 align="middle">Part 1: Ray Generation and Scene Intersection</h3>
 
-<p>In part 1, we generated camera rays, pixel samples, and implemented ray-triangle and ray-sphere intersection. In terms of ray generation, after generating rays for each pixel, we had to look for intersection points between the rays and surfaces in the image. We did this by transforming the image coordinates into camera space, generated the ray in the camera space, and transformed it in the world space. In task 3 of part 1 we implemented ray-triangle intersection using the Möller Trumbore Algorithm. The basic idea behind ray intersection is to test if a point is inside the triangle, and one way to optimize this is to use this algorithm. We implemented this algorithm by setting up a system of equations where we found the ray’s t-value and the barycentric coordinates, by doing this, we are able to detect if the ray hit the triangle. After setting up the equations, we restricted the range of the t-values by ensuring that our barycentric coordinate values were greater than 0, and  that our t-values were greater than min_t and less than max_t. Finally, we set max_t = t so that we can grab the nearest intersection. This essentially tests if there is an intersection. Once an intersection takes place, we then record the intersection and update the data. 
+<p>
 </p>
 
 
@@ -211,7 +210,7 @@ The main difference between estimate_direct_lighting_hemisphere() and estimate_d
   </table>
 </div>
 
-<p>Pictured below is CBspheres_lambertian.dae rendered with <b>only</b> direct illumination(left) and <b>only</b> indirect illumination(right)</p>
+<p>Below is CBspheres_lambertian.dae rendered with <b>only</b> direct illumination(left) and <b>only</b> indirect illumination(right)</p>
 
 <div align="middle">
   <table style="width=100%">
@@ -229,112 +228,8 @@ The main difference between estimate_direct_lighting_hemisphere() and estimate_d
   </table>
 </div>
 
-<p>Pictured below is CBbunny.dae rendered with max_ray_depth set to 0,1,2,3, and 100 and rendered with 1024 samples per pixel.</p>
 
-
-<div align="middle">
-  <table style="width=100%">
-    <tr>
-      <td>
-        <img src="images/bunnyMRD0.png" align="middle" width="400px"/>
-        <figcaption align="middle">max_ray_depth = 0</figcaption>
-      </td>
-      <td>
-        <img src="images/bunnyMRD1.png" align="middle" width="400px"/>
-        <figcaption align="middle">max_ray_depth = 1</figcaption>
-      </td>
-    </tr>
-    <br>
-    <tr>
-      <td>
-        <img src="images/bunnyMRD2.png" align="middle" width="400px"/>
-        <figcaption align="middle">max_ray_depth = 2</figcaption>
-      </td>
-      <td>
-        <img src="images/bunnyMRD3.png" align="middle" width="400px"/>
-        <figcaption align="middle">max_ray_depth = 3</figcaption>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <img src="images/bunnyMRD100.png" align="middle" width="400px"/>
-        <figcaption align="middle">max_ray_depth = 100</figcaption>
-      </td>
-    </tr>
-  </table>
-</div>
-
-<p>Pictured below is bench.dae rendered with 4 light rays and 1, 2, 4, 8, 16, 64, and 1024 samples per pixel.</p>
-
-<div align="middle">
-  <table style="width=100%">
-    <tr>
-      <td>
-        <img src="images/benchSR1.png" align="middle" width="400px"/>
-        <figcaption align="middle">samples-per-pixel = 1</figcaption>
-      </td>
-      <td>
-        <img src="images/benchSR2.png" align="middle" width="400px"/>
-        <figcaption align="middle">samples-per-pixel = 2</figcaption>
-      </td>
-    </tr>
-    <tr>
-      <td>
-        <img src="images/benchSR4.png" align="middle" width="400px"/>
-        <figcaption align="middle">samples-per-pixel = 4</figcaption>
-      </td>
-      <td>
-        <img src="images/benchSR8.png" align="middle" width="400px"/>
-        <figcaption align="middle">samples-per-pixel = 8</figcaption>
-      </td>    
-    </tr>
-    <br>
-    <tr>
-      <td>
-        <img src="images/benchSR16.png" align="middle" width="400px"/>
-        <figcaption align="middle">samples-per-pixel = 16</figcaption>
-      </td>
-      <td>
-        <img src="images/benchSR64.png" align="middle" width="400px"/>
-        <figcaption align="middle">samples-per-pixel = 64</figcaption>
-      </td>
-    </tr>
-    <br>
-    <td>
-        <img src="images/benchSR1024.png" align="middle" width="400px"/>
-        <figcaption align="middle">samples-per-pixel = 1024</figcaption>
-      </td>
-
-  </table>
-</div>
 
 
 <h3 align="middle">Part 5: Adaptive Sampling </h3>
-
-<p>Adaptive sampling is an algorithm to minimize the number of samples we need to take while still getting a smooth render. To do so, we use the same raytrace_pixel algorithm from part 1, with a few slight adjustments. Every samplesPerBatch sample we take, we check if the pixel has converged. To do so, we calculate the mean and standard deviation using s1 and s2 where s1 is the sum of illuminance from all samples 1-n (n is the number of samples already taken) and s2 is the sum of illuminance squared from all samples 1-n. Our calculation for mean is s1 / n and our calculation for standard deviation is sqrt((1.0 / (n - 1.0)) * (s2 - (s1^2 / n))). Then, we calculate the convergence of the current pixel as I =  1.96 * (sd / sqrt(n)) and check if I <= maxTolerance * mean. If it is, we stop taking samples and set the radiance at the current pixel to the sum of all samples scaled by the number of samples taken. If it is not, we add the current sample to the sum of all samples and move on to the next sample. 
-</p>
-
-<div align="middle">
-  <table style="width=100%">
-    <tr>
-      <td>
-        <img src="images/bunnyP5_rate.png" align="middle" width="400px"/>
-        <figcaption align="middle">Adaptive sampling with 2048 samples per pixel</figcaption>
-      </td>
-      <td>
-        <img src="images/bunnyP5.png" align="middle" width="400px"/>
-        <figcaption align="middle">Adaptive sampling with 2048 samples per pixel</figcaption>
-      </td>
-    </tr>
-    <br>
-  </table>
-</div>
-
-<p>Throughout the entirety of this project, we learned a significant amount about ray generation, global illumination, and adaptive sampling. Using zoom, we were able to share one of our screens and were able to collaborate effectively. This went really well because we were also able to edit each other’s screens so that we could work at the same time. We found this way of collaboration really useful because we were able to ask each other questions and understand the concepts better allowing us to learn more. For instance, while implementing ray-triangle intersection, we looked at lecture slides together and used google in order to figure out Möller’s Algorithm. Overall, we had a great experience!
-</p>
-
-
-
-<a href="https://cal-cs184-student.github.io/sp22-project-webpages-JDRadatti/
-">https://cal-cs184-student.github.io/sp22-project-webpages-JDRadatti/</a>
 

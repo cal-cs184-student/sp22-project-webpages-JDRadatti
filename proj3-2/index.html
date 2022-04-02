@@ -1,7 +1,205 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 3-2 here
-	</body>
-</html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<style>
+  body {
+    padding: 100px;
+    width: 1000px;
+    margin: auto;
+    text-align: left;
+    font-weight: 300;
+    font-family: 'Open Sans', sans-serif;
+    color: #121212;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+</style>
+<title>CS 184 Pathtracer 2</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+<h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2022</h1>
+<h1 align="middle">Project 3-2: Pathtracer 2</h1>
+<h2 align="middle">Justin Radatti and Dakshina Palasamudrum, CS184-jdr</h2>
+
+<br><br>
+
+<div>
+
+<h2 align="middle">Overview</h2>
+<p> 
+</p>
+
+<h3 align="middle">Part 1: Mirror and Glass Materials</h3>
+
+<p> Below are a series of seven images of CBspheres.dae rendered with max_ray_depth of 0, 1, 2, 3, 4, 5, and 100. Each render uses 1024 samples per pixel and 16 light samples. 
+</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/sphere0.png" align="middle" width="400px"/>
+        <figcaption align="middle">max_ray_depth = 0</figcaption>
+      </td>
+     <br>
+    </tr>
+  </table>
+</div>
+<p>When max_ray_depth = 0, we only get the zero bounce radiance. Thus, we can only see the light that comes directly from the light source, which is why the entire image is black except for the light. </p>
+
+ <div align="middle">
+  <table style="width=100%">
+    <tr>    
+      <td>
+        <img src="images/sphere1.png" align="middle" width="400px"/>
+        <figcaption align="middle">max_ray_depth = 1</figcaption>
+      </td>
+    <br>
+    </tr>
+  </table>
+</div>
+<p>When max_ray_depth = 1, we can see the light that leaves the light, bounces off of an object in the scene, and goes straight to the camera. In this image, we can now see the walls of the Cornell Box as well as the reflection of the light on the spheres. Notice how the ceiling is black; this is because the light can not directly bounce off of the ceiling. We can see the reflection on the spheres because the light bounces off of the spheres and reflects back to the camera. The reason why only a specific area of the spheres are lit is because the light is reflected about the surface normal of the spheres. The black part of the spheres is the area where the reflection hits a wall/ceiling/floor and is not reflected directly to the light source. </p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr> 
+      <td>
+        <img src="images/sphere2.png" align="middle" width="400px"/>
+        <figcaption align="middle">max_ray_depth = 2</figcaption>
+      </td>
+      <br>
+    </tr>
+  </table>
+</div>
+<p> When max_ray_depth = 2, the left sphere now reflects the light from the walls, floor, and right sphere. With the added ray, we can now measure the radiance from the second bounce of light. More specifically, we send a ray into the scene and when it hits a sphere, it can bounce off and hit another object in the scene. With the extra ray depth, the light can then bounce off of the second object and if it hits the light, we can measure the radiance. Due to this, we can now see the ceiling. This is because the light bounces off of a wall and can now hit the ceiling and be measured by the camera. The reason the ceiling is still black in the left marble is because when the ray hits, it bounces off and hits the ceiling and then since the light doesn’t directly hit the ceiling, it returns black. The reason the right sphere is black is because it is only reflecting the light. In other words, when the light enters the sphere, it must pass through but since our ray depth is too low, the light gets trapped in the glass sphere and cannot escape, resulting in no refraction. </p> 
+ 
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/sphere3.png" align="middle" width="400px"/>
+        <figcaption align="middle">max_ray_depth = 3</figcaption>
+      </td>    
+    </tr>
+    <br>
+  </table>
+</div>
+<p>With max_ray_depth = 3, the right sphere can finally refract the light that enters it but notice how the reflection of the right sphere is still black. We can also now see the ceiling reflection in the left sphere and the right sphere now has a white highlight inside its shadow and a small one on its right side. Now, when the light enters the sphere on the right, it can refract through the glass, and then exit the sphere and be measured by the camera. The reason the reflection of the right sphere on the left sphere appears to be black is because when the light hits the left sphere and then reflects off and hits the right sphere, it refracts through the glass but there is not enough ray depth for the light to exit the sphere. The ceiling reflection in the right sphere is due to the light bouncing from the light and reflecting off of the left sphere, hitting the ceiling, and then bouncing back to the camera. The white highlight in the shadow of the right sphere is due to the light refracting through the glass, hitting the floor, and then bouncing towards the camera. </p> 
+
+ 
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/sphere4.png" align="middle" width="400px"/>
+        <figcaption align="middle">max_ray_depth = 4</figcaption>
+      </td>
+      <br>
+    </tr>
+  </table>
+</div>
+<p> With max_ray_depth = 4, we can now see the refraction of light through the right sphere inside the left sphere. Another new addition is the highlight on the right wall. Also, the shadow on the right side of the right sphere has more colors. As for the reflection on the left ball, the light can reflect off of the left sphere, enter the right sphere, refract out of the right sphere, and then bounce toward the camera. The reason we now get the highlight on the right wall is because the light can travel to the right sphere, refract through it, hit the wall, and traverse back to the camera.  </p>
+
+  
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/sphere5.png" align="middle" width="400px"/>
+        <figcaption align="middle">max_ray_depth = 5</figcaption>
+      </td>
+      <br>
+    </tr>
+  </table>
+</div>
+<p> max_ray_depth = 5 is very similar to max_ray_depth = 4. However, it is slightly brighter due to more rays bouncing off of scene objects and making their way to the light before being truncated by the ray depth. </p>
+
+
+
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/sphere100.png" align="middle" width="400px"/>
+        <figcaption align="middle">max_ray_depth = 100</figcaption>
+      </td>
+    <br>
+    </tr>
+  </table>
+</div>
+<p>Again, max_ray_depth = 100 is very similar to max_ray_depth = 5. The only difference is the light reflection on the top of the right sphere. This is due to the light refracting through the sphere, bouncing on the ground(where the highlight is in the shadow) and then refracting back through the sphere and bouncing back to the camera. </p>
+
+
+
+<h3 align="middle">Part 2:  Microfacet Material</h3>
+<p>After setting the alpha values to 0.005, 0.05, 0.25, and 0.5, there were visible differences when the images were rendered. For instance, as the alpha value increased, the shine of the dragon decreased. Not only this, but the higher alpha values caused the images to be less noisy and brighter. In particular, we can see that the image rendered with a 0.005 has a lot of white specs and is very shiny. 
+</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/1dragon.png" align="middle" width="400px"/>
+        <figcaption align="middle">alpha = 0.005</figcaption>
+      </td>
+      <td>
+        <img src="images/2dragon.png" align="middle" width="400px"/>
+        <figcaption align="middle">alpha = 0.05</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+    <td>
+        <img src="images/3dragon.png" align="middle" width="400px"/>
+        <figcaption align="middle">alpha = 0.25</figcaption>
+      </td>
+      <td>
+        <img src="images/4dragon.png" align="middle" width="400px"/>
+        <figcaption align="middle">alpha = 0.5</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p>There were also visible differences when CBbunny_microfacet_cu.dae was rendered using cosine hemisphere sampling versus importance sampling. The biggest difference would be the noisiness of the image. When the image was rendered using cosine hemisphere sampling, we can see that there is a lot of noise around the bunny and the walls, while the image rendered using importance sampling is very smooth and noise-free. 
+</p>
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/2bunny.png" align="middle" width="400px"/>
+        <figcaption align="middle">Cosine Hemisphere Sampling</figcaption>
+      </td>
+      <td>
+        <img src="images/1bunny.png" align="middle" width="400px"/>
+        <figcaption align="middle">Importance Sampling</figcaption>
+      </td>
+    <br>
+  </tr>
+  </table>
+</div>
+
+<p>We decided to try rendering the image using silver as our conductor material, with values eta = 0.051585 and k = 3.9046: 
+</p>
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+       <img src="images/silverdragon.png" align="middle" width="400px"/>
+       <figcaption align="middle">eta = 0.051585 and k = 3.9046</figcaption>
+      </td>
+    </tr>
+ </table>
+</div>
+
+<a href="https://cal-cs184-student.github.io/sp22-project-webpages-JDRadatti/">https://cal-cs184-student.github.io/sp22-project-webpages-JDRadatti/</a>
+
+
+

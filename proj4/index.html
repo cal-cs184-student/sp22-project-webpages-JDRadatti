@@ -1,7 +1,377 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 4 here
-	</body>
-</html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <style>
+body {
+  padding: 100px;
+  width: 1000px;
+  margin: auto;
+  text-align: left;
+  font-weight: 300;
+  font-family: 'Open Sans', sans-serif;
+  color: #121212;
+}
+  h1, h2, h3, h4 {
+    font-family: 'Source Sans Pro', sans-serif;
+  }
+    </style>
+    <title>CS 184 Cloth Simulation</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+  </head>
+
+
+  <body>
+
+    <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2022</h1>
+    <h1 align="middle">Project 4: Cloth Simulation</h1>
+    <h2 align="middle">Justin Radatti, CS184-jd</h2>
+
+    <br><br>
+
+    <div>
+
+      <h2 align="middle">Overview</h2>
+      <p> 
+      This was my favorite project of the semester. It is so amazing to implement a computer model of a cloth and watch it come to life right before my eyes. The level of realism is baffling and it makes me want to dive deeper into computer simulations. 
+      I started this project by implementing the wireframe for the cloth. To do so, we evenly spread out point masses along the surface of the wire and added shearing, bending, and structural springs connecting the relevant point masses.  In the second part, I simulated cloth movement by applying forces on each of the strings and calculating their next positions using Verlet Integration. 
+      In the third section, I implemented cloth collisions with spheres and planes. To do so, I tested whether each point mass collided with any of the scene object. If it did, I readjusted the position of the point mass to be slighly above the object's surface. 
+      Next, I implemented self-collisions which disallowed the cloth from clipping through itself. The naive algorithm is to iterate over all pairs of vertices. However, I optimized this using a hashmap to only check the relevent pairs of vertices.  
+      Finally, I got to dip my toes into openGL and create a shader program to add Diffuse, Blinn-Phong, Mirror, Texture mapping, Bump mapping, and Displacement mapping.
+      </p>
+
+      <h3 align="middle">Part 1: Masses and Springs</h3>
+
+      <p> In this part, we implemented the wireframe for our cloth object by populating the point masses and springs of the cloth object. Pictured below are a couple of screenshots of the wireframe using different constraints. 
+      </p>
+
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/only_shearing.png" align="middle" width="700px"/>
+              <figcaption align="middle">Pictured above using only shearing constraints</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/no_shearing.png" align="middle" width="700px"/>
+              <figcaption align="middle">Pictured above using bending and structural constraints</figcaption>
+            </td> 
+          </tr>
+          <tr>
+            <td>
+              <img src="images/all_constraints.png" align="middle" width="700px"/>
+              <figcaption align="middle">Pictured above using all constraints</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+
+
+      <h3 align="middle">Part 2: simulation via numerical integration </h3>
+
+      <p> In this part, we simulated cloth movement. First, we applied all external forces to every point mass. Then, for each spring, we calculated the spring force and applied it to both point masses correcsponding to the spring. Next, we used Verlet Integration to calculate the point mass's next positions. 
+      </p>
+
+      <p> Changing the spring constant: </p>
+
+      <p> With a high spring constant, the cloth is much more stiff from start to rest. It falls similar to how a piece of printer paper would fall. At rest, there is a slight dip in the middle and one large ripple.
+          With a low spring constant, the cloth is much more fluid as if falls from start to rest. It reminds me of a light piece of silk. At rest, there is a much larger dip and a lot more, small wrinkles.
+      </p>
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/low_ks10.png" align="middle" width="700px"/>
+              <figcaption align="middle">High Spring Constant: 10</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/high_ks100000.png" align="middle" width="700px"/>
+              <figcaption align="middle">Low Spring Constant: 100,000</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+      <p> Changing Density:  </p>
+      <p>When increasing the density, the cloth falls to a resting position much faster. It is evident that the cloth is being weighed down quite a bit; it is strectched in the horizontal direction and the wripple is large. It reminds me of a quilt. 
+      When decreasing the density, the cloth falls to resting position much slower. When at rest, the cloth hangs relatively flat. 
+      </p>
+
+
+
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/low_density.png" align="middle" width="700px"/>
+              <figcaption align="middle">Low Density</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/high_density.png" align="middle" width="700px"/>
+              <figcaption align="middle">High Density</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+      <p> Changing Damping: </p> 
+      <p> With low damping, the cloth is very fluid and takes a long time to reach a resting state. Instead, it swings back and forth almost as if there is a constand wind pushing if forward and then backwards. There are a lot of ripples in the cloth with low damping as if it is a light cloth in the wind.  With high damping, the cloth falls much slow with much less ripples. Then it reaches the bottom, it is immediately in a resting state and does not swing or sway. 
+
+     <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/low_damping.png" align="middle" width="700px"/>
+              <figcaption align="middle">Low Damping</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/high_damping.png" align="middle" width="700px"/>
+              <figcaption align="middle">High Damping</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+      <p> Below is a screenshot of pinned4.json using the default parameters </p>
+
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/pinned4.png" align="middle" width="700px"/>
+              <figcaption align="middle">pinned4.json</figcaption>
+            </td>
+            <br>
+          </tr>
+        </table>
+      </div>
+     
+
+
+
+      <h3 align="middle">Part 3: Handling Collisions with Other Objects</h3>
+
+      <p>Sphere collisions: With a low spring constant of 500, the cloth drapes over the sphere and hangs lower than the other two examples. Furthermore, a low spring constant creates the most wrinkles as well as the narrowest wrinkles. 
+      A High spring constant of 50,000 is more structurally sound than the other two examples. It holds its shape much better and doesn't wrinkle as much. Also, the wrinkles are much wider than the other two examples. 
+      The spring constant of  5,000 produces a draping pattern that is somewhere in between the other two spring constants. The wrinkles are in the middle in terms of frequency and width. 
+      </p>
+      <p>The results are pictured below:</p>
+
+
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/part3_ks500.png" align="middle" width="700px"/>
+              <figcaption align="middle">Spring Constant = 500</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/part3_ks5000.png" align="middle" width="700px"/>
+              <figcaption align="middle">Spring Constant = 5000</figcaption>
+            </td> 
+          </tr>
+          <tr>
+            <td>
+              <img src="images/part3_ks50000.png" align="middle" width="700px"/>
+              <figcaption align="middle">Spring Constant = 50000</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+      <p>Plane Collisions: </p>
+
+
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/part3.png" align="middle" width="700px"/>
+              <figcaption align="middle">Cloth(red) laying on plane</figcaption>
+            </td>
+            <br>
+          </tr>
+        </table>
+      </div>
+
+      <h3 align="middle">Part 4: Handling Self-Collisions</h3>
+      <p> Pictured below is four screenshots of the cloth falling from a vertical position. </p>
+      
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/fall_1.png" align="middle" width="700px"/>
+              <figcaption align="middle"></figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/fall_2.png" align="middle" width="700px"/>
+              <figcaption align="middle"></figcaption>
+            </td> 
+          </tr>
+          <tr>
+            <td>
+              <img src="images/fall_3.png" align="middle" width="700px"/>
+              <figcaption align="middle"></figcaption>
+            </td> 
+          </tr>
+          <tr>
+            <td>
+              <img src="images/fall_4.png" align="middle" width="700px"/>
+              <figcaption align="middle"></figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+      <p> When increasing the density of the cloth, it produces many thin folds as it falls. The first screenshot below showcases a fall with high density. 
+      When decreasing the density, the folds are much broader and less plentiful. This is showcased in the second screenshot below.</p> 
+
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/p4_high_density.png" align="middle" width="700px"/>
+              <figcaption align="middle">High Density</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/p4_low_density.png" align="middle" width="700px"/>
+              <figcaption align="middle">Low Density</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+      <p> The first screenshot below showcases a simulation with a low spring constant. Having a low spring constant results in the cloth producing many tight folds as it falls. 
+      The second screenshot below showcases a simulation with a high spring constant. The high spring constant results in the cloth holding its shape more and producing wider folds. 
+      </p>
+      j
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/p4_low_ks.png" align="middle" width="700px"/>
+              <figcaption align="middle">Low Spring Constant</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/p4_high_ks.png" align="middle" width="700px"/>
+              <figcaption align="middle">High Spring Constant</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+       
+      <h3 align="middle">Part 5: Shaders</h3>
+
+      <p>A shader program is a program that runs in parallel on the GPU and handles the graphics portion of a program. An OpenGL shader consists of a vertex shader and a fragment shader. The vertex shader is responsible for modifying the attributes of all vertices in the scene. After modifying the values, the vertex shader interpolates all the vertices using barycentric coordinates.  Whereas, the fragment shader essentially handles modifying the pixel values. The output of the vertex shader is piped into the input of the fragment shader. Then the fragment shader uses the vertex attributes to calculate the color that should be at any given pixel. 
+      </p>
+
+      <p> Blinn-Phond Shading: </p>
+      <p>Blinn-Phong shading uses the specular, diffuse, and ambient properties of an object to simulate a realistic shading. Specular represents the shape and the color. Diffuse is the degree to which the object is matte. Ambient represents the highlights. The Blinn-Phong model combines all three of these properties. By tweaking the parameters, it is possible to represent a wide variety of realistic textures. 
+      </p>
+
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/phong_specular.png" align="middle" width="700px"/>
+              <figcaption align="middle">Specular</figcaption>
+            </td>
+            <br>
+          </tr>
+          <tr>
+            <td>
+              <img src="images/phong_diffuse.png" align="middle" width="700px"/>
+              <figcaption align="middle">Diffuse</figcaption>
+            </td> 
+          </tr>
+          <tr>
+            <td>
+              <img src="images/phong_ambient.png" align="middle" width="700px"/>
+              <figcaption align="middle">Ambient</figcaption>
+            </td> 
+          </tr>
+          <tr>
+            <td>
+              <img src="images/phong_all.png" align="middle" width="700px"/>
+              <figcaption align="middle">Specular, diffuse, and ambient</figcaption>
+            </td> 
+          </tr>
+        </table>
+      </div>
+
+
+      <p> Texture Shading: </p>
+
+      <p> I decided to use an image of my nephew for the texture. </p>
+      
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/texture.png" align="middle" width="700px"/>
+              <figcaption align="middle">Texture Shading</figcaption>
+            </td>
+            <br>
+          </tr>
+        </table>
+      </div>
+
+
+
+
+
+
+
+
+
+
+
+      <p> Mirror Shading: </p>
+      <div align="middle">
+        <table style="width=100%">
+          <tr>
+            <td>
+              <img src="images/mirror.png" align="middle" width="700px"/>
+              <figcaption align="middle">Mirror Shading: cloth draped over sphere</figcaption>
+            </td>
+          </tr>
+          <br>
+          <tr>
+            <td>
+              <img src="images/mirror_sphere.png" align="middle" width="700px"/>
+              <figcaption align="middle">Mirror Shading: sphere</figcaption>
+            </td>
+            <br>
+          </tr>
+        </table>
+      </div>
+
+
+
+<a href="https://cal-cs184-student.github.io/sp22-project-webpages-JDRadatti/">https://cal-cs184-student.github.io/sp22-project-webpages-JDRadatti/</a>
